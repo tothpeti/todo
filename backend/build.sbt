@@ -11,4 +11,3 @@ libraryDependencies ++= Seq(
    .settings(
      name := "todo-backend"
    )
-
