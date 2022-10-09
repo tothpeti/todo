@@ -1,20 +1,32 @@
 package service
 
+import cats.Monad
+import cats.effect.Sync
+import cats.implicits._
+import exception.{InternalServerError, ServiceError, TodoNotFoundError}
 import model.Todo
 import repository.Repository
 
 import java.util.UUID
 
-trait Service[F[_]] {
-  def findById(id: UUID): F[Todo]
+class TodoService[F[_]: Monad: Sync](repository: Repository[F]) extends Service[F] {
+  override def findById(id: UUID): F[Either[ServiceError, Todo]] =
+    for {
+      todoOpt <- repository.findById(id)
+    } yield todoOpt match {
+      case Some(value) => Right(value)
+      case None        => Left(TodoNotFoundError(s"Todo with $id was not found."))
+    }
 
-  def findAll(): F[List[Todo]]
+  override def findAll(): F[Either[ServiceError, List[Todo]]] =
+    repository.findAll().attempt.map(_.leftMap(t => InternalServerError(t.getMessage)))
 
-  def save(newTodo: Todo): F[Unit]
+  override def save(newTodo: Todo): F[Unit] =
+    repository.save(newTodo)
 
-  def deleteById(id: UUID): F[Unit]
+  override def deleteById(id: UUID): F[Unit] =
+    repository.deleteById(id)
 
-  def deleteAll(): F[Unit]
+  override def deleteAll(): F[Unit] =
+    repository.deleteAll()
 }
-
-class TodoService[F[_]](repository: Repository[F]) {}
