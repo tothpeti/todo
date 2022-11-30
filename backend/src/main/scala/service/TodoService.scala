@@ -21,9 +21,11 @@ class TodoService[F[_]: Monad: Sync](repository: Repository[F]) extends Service[
   override def findAll(): F[Either[ServiceError, List[Todo]]] =
     repository.findAll().attempt.map(_.leftMap(t => InternalServerError(t.getMessage)))
 
+  // TODO add TodoAlreadyExistsException ... and add support for it which lookup the name of Todo if exists...
   override def save(newTodo: Todo): F[Unit] =
     repository.save(newTodo)
 
+  // TODO add TodoNotFoundException ... in case of InMemoryRepository, this won't work, but in the real imlementation it will be handy
   override def deleteById(id: UUID): F[Unit] =
     repository.deleteById(id)
 
