@@ -1,6 +1,14 @@
 *.class
 *.log
 
+.idea
+.bsp
+.bloop
+.metals
+.vscode
+target
+project/.bloop 
+project/metals.sbt
 */.idea
 */.bsp
 */project
