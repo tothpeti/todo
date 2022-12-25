@@ -9,6 +9,9 @@ libraryDependencies ++= Seq(
   "org.http4s"            %% "http4s-ember-server"    % "0.23.16",
   "com.github.pureconfig" %% "pureconfig-core"        % "0.17.2",
   "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.17.2",
+  "io.circe"              %% "circe-core"             % "0.14.3",
+  "io.circe"              %% "circe-generic"          % "0.14.3",
+  "io.circe"              %% "circe-parser"           % "0.14.3",
   // Database
   "org.tpolecat" %% "doobie-core"   % "1.0.0-RC2",
   "org.tpolecat" %% "doobie-hikari" % "1.0.0-RC2",
