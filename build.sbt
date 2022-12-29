@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.2.1"
+ThisBuild / scalaVersion := "2.13.10"
 
 libraryDependencies ++= Seq(
   // Core
@@ -13,13 +13,16 @@ libraryDependencies ++= Seq(
   "io.circe"              %% "circe-generic"          % "0.14.3",
   "io.circe"              %% "circe-parser"           % "0.14.3",
   // Database
-  "org.tpolecat" %% "doobie-core"   % "1.0.0-RC2",
-  "org.tpolecat" %% "doobie-hikari" % "1.0.0-RC2",
-  "org.flywaydb"  % "flyway-core"   % "9.10.2",
+  "org.tpolecat" %% "doobie-core"          % "1.0.0-RC2",
+  "org.tpolecat" %% "doobie-hikari"        % "1.0.0-RC2",
+  "org.flywaydb"  % "flyway-mysql"         % "9.10.2",
+  "mysql"         % "mysql-connector-java" % "8.0.31",
   // Logging
   "org.typelevel" %% "log4cats-slf4j"  % "2.5.0",
   "ch.qos.logback" % "logback-classic" % "1.4.5"
 )
+
+addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 
 lazy val root = (project in file("."))
   .settings(

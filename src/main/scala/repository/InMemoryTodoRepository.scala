@@ -6,7 +6,8 @@ import org.typelevel.log4cats.Logger
 
 import java.util.UUID
 
-class InMemoryTodoRepository private (ref: Ref[IO, Map[UUID, Todo]], logger: Logger[IO]) extends TodoRepository:
+class InMemoryTodoRepository private (ref: Ref[IO, Map[UUID, Todo]])(implicit logger: Logger[IO])
+    extends TodoRepository {
   override def findAll(): IO[List[Todo]] = for {
     _  <- logger.info("Fetching all todos...")
     db <- ref.get
@@ -30,7 +31,9 @@ class InMemoryTodoRepository private (ref: Ref[IO, Map[UUID, Todo]], logger: Log
   override def deleteAll(): IO[Unit] = for {
     _ <- logger.info(s"Deleting all todo...")
   } yield ref.set(Map.empty[UUID, Todo])
+}
 
-object InMemoryTodoRepository:
-  def make(db: Ref[IO, Map[UUID, Todo]], logger: Logger[IO]): InMemoryTodoRepository =
-    InMemoryTodoRepository(db, logger)
+object InMemoryTodoRepository {
+  def make(db: Ref[IO, Map[UUID, Todo]])(implicit logger: Logger[IO]): InMemoryTodoRepository =
+    new InMemoryTodoRepository(db)
+}

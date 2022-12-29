@@ -1,24 +1,36 @@
-import cats.syntax.all.*
-import cats.effect.{IO, IOApp, Ref}
-import cats.effect.implicits.*
-import org.typelevel.log4cats.slf4j.Slf4jLogger
-import resources.HttpServerConnection
-import config.ConfigLoader
-import domain.Todo
+import cats._
+import cats.syntax.all._
+import cats.effect._
+import cats.effect.implicits._
+import config.Config
+import doobie.util.ExecutionContexts
 import http.HttpApi
-import repository.InMemoryTodoRepository
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
+import repository.DoobieTodoRepository
+import resources.{Database, HttpServer}
 import service.TodoService
 
-import java.util.UUID
+object Main extends IOApp.Simple {
 
-object Main extends IOApp.Simple:
-  override def run: IO[Unit] = for {
-    logger  <- Slf4jLogger.create[IO]
-    _       <- logger.info("Starting Todo Application...")
-    ref     <- Ref[IO].of(Map.empty[UUID, Todo])
-    db       = InMemoryTodoRepository.make(ref, logger)
-    service  = TodoService.make(db)
-    config  <- config.ConfigLoader().load()
-    httpApi <- HttpApi.make(service)
-    _       <- HttpServerConnection.make(config.server, httpApi.httpApp, logger).useForever
-  } yield ()
+  private def resources =
+    for {
+      config     <- Resource.eval(Config.load())
+      ec         <- ExecutionContexts.fixedThreadPool[IO](config.database.threadPoolSize)
+      transactor <- Database.makeTransactor(config.database, ec)
+    } yield (config, transactor)
+
+  override def run: IO[Unit] =
+    resources.use { case (config, xa) =>
+      for {
+        implicit0(logger: Logger[IO]) <- Slf4jLogger.create[IO]
+        _                             <- logger.info("Starting application...")
+        _                             <- Database.migrate(xa)
+        db                             = DoobieTodoRepository.make(xa)
+        service                        = TodoService.make(db)
+        httpApi                        = HttpApi.make(service)
+        _                             <- HttpServer.make(config.server, httpApi.httpApp).useForever
+      } yield ()
+    }
+
+}

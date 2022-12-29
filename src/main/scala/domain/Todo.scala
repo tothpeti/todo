@@ -1,13 +1,13 @@
 package domain
 
-import io.circe.*
-import io.circe.generic.semiauto.*
-import io.circe.Decoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveEncoder, deriveDecoder}
 
 import java.util.UUID
 
-case class Todo(id: UUID, name: String, description: String)
+case class Todo(id: UUID, name: String, description: Option[String])
 
-object Todo:
-  given Decoder[Todo] = deriveDecoder
-  given Encoder[Todo] = deriveEncoder
+object Todo {
+  implicit val todoDecoder: Decoder[Todo] = deriveDecoder
+  implicit val todoEncoder: Encoder[Todo] = deriveEncoder
+}

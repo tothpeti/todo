@@ -2,15 +2,15 @@ package http.routes
 
 import domain.Todo
 import cats.effect.IO
-import org.http4s.*
-import org.http4s.implicits.*
-import org.http4s.circe.CirceEntityEncoder.*
-import org.http4s.circe.CirceEntityDecoder.*
+import org.http4s._
+import org.http4s.implicits._
+import org.http4s.circe.CirceEntityEncoder._
+import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import service.TodoService
 
-class TodoRoute private (service: TodoService) extends Http4sDsl[IO]:
+class TodoRoute private (service: TodoService) extends Http4sDsl[IO] {
   private[routes] val prefixPath = "/todo"
 
   private val httpRoutes: HttpRoutes[IO] = HttpRoutes.of[IO] {
@@ -19,12 +19,12 @@ class TodoRoute private (service: TodoService) extends Http4sDsl[IO]:
 
     case GET -> Root / UUIDVar(uuid) =>
       service.findById(uuid).flatMap {
-        case Some(todo) => Ok(todo)
-        case None       => NotFound()
+        case Right(value) => Ok(value)
+        case Left(err)    => NotFound(err.msg)
       }
 
     case req @ POST -> Root =>
-      req.decode[Todo](data => service.upsert(data).flatMap(Ok(_)))
+      req.decode[Todo](data => service.upsert(data).flatMap(Created(_)))
 
     case DELETE -> Root / UUIDVar(uuid) =>
       service.deleteById(uuid).flatMap(Ok(_))
@@ -37,5 +37,8 @@ class TodoRoute private (service: TodoService) extends Http4sDsl[IO]:
     prefixPath -> httpRoutes
   )
 
-object TodoRoute:
-  def make(service: TodoService): TodoRoute = TodoRoute(service)
+}
+
+object TodoRoute {
+  def make(service: TodoService): TodoRoute = new TodoRoute(service)
+}
